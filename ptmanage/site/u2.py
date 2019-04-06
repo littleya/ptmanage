@@ -28,19 +28,35 @@ HEADERS = {
     'cookie': CONF.u2.cookie
 }
 DOWNLOADING_LINK = 'https://u2.dmhy.org/getusertorrentlistajax.php?' + \
-                   'userid={}&type=seeding'.format(str(CONF.u2.uid))
+                   'userid={}&type=leeching'.format(str(CONF.u2.uid))
 SEEDING_LINK = 'https://u2.dmhy.org/getusertorrentlistajax.php?' + \
-               'userid={}&type=leeching'.format(str(CONF.u2.uid))
+               'userid={}&type=seeding'.format(str(CONF.u2.uid))
 TORRENT_LINK = 'https://u2.dmhy.org/torrents.php'
+USER_DETAIL_LINK = 'https://u2.dmhy.org/userdetails.php?' + \
+                   'id={}'.format(str(CONF.u2.uid))
+PROMOTE_LINK = 'https://u2.dmhy.org/promotion.php?action=magic&torrent={}'
+PROMOTE_TEST_LINK = 'https://u2.dmhy.org/promotion.php?test=1'
 
 RG_TORRENT_ID = re.compile('.*?(\\d+)', re.IGNORECASE | re.DOTALL)
 
-PROMOTE_MAPPING = {
+PROMOTE_DOWNLOAD_MAPPING = {
     'pro_30pctdown': 30,
     'pro_50pctdown': 50,
     'pro_free': 100,
     'pro_free2up': 100,
-    'pro_custom': 100
+    'pro_custom': 0,
+    'pro_2up': 100,
+    'pro_50pctdown2up': 50
+}
+
+PROMOTE_UPLOAD_MAPPING = {
+    'pro_30pctdown': 100,
+    'pro_50pctdown': 100,
+    'pro_free': 100,
+    'pro_free2up': 200,
+    'pro_custom': 233,
+    'pro_2up': 200,
+    'pro_50pctdown2up': 200
 }
 
 
@@ -128,25 +144,6 @@ class U2Site(base.BaseSite):
             LOG.debug('Get torrent: ' + str(trid))
         return info
 
-    # def _get_torrent_downloading(self):
-    #     page = self._get_torrent_page(DOWNLOADING_LINK)
-    #     return self._resolv_torrent_from_user_details(page)
-
-    # def _get_torrent_seeding(self):
-    #     page = self._get_torrent_page(SEEDING_LINK)
-    #     return self._resolv_torrent_from_user_details(page)
-
-    # def _resolv_torrent_from_user_details(self, page):
-    #     html = etree.HTML(page)
-    #     hrefs = html.xpath('//table[contains(@class, 'torrentname')]'
-    #                        '/tr/td/a/@href')
-    #     torrent_list = []
-    #     for href in hrefs:
-    #         res = RG_TORRENT_ID.search(href)
-    #         if res:
-    #             torrent_list.append(int(res.group(1)))
-    #     return torrent_list
-
     def get_torrent_links(self):
         selected_torrents = U2Filter(self._get_torrent_webpage()).filter()
         passkey = CONF.u2.passkey
@@ -165,7 +162,7 @@ class U2Filter(base.BaseFilter):
         self.unusing_torrents = unusing_torrents
 
     def _filter_promote(self, t):
-        torrent_promtoe = PROMOTE_MAPPING.get(t.promote, 0)
+        torrent_promtoe = PROMOTE_DOWNLOAD_MAPPING.get(t.promote, 0)
         if torrent_promtoe < CONF.u2.promote:
             LOG.debug('filter promtoe unpass: ' + str(t.id))
             return False
@@ -229,10 +226,140 @@ class U2Filter(base.BaseFilter):
         return torrents
 
 
+class U2Promote(base.BasePromote):
+    def __init__(self):
+        super(U2Promote, self).__init__()
+
+    def _get_page(self, link):
+        page = requests.get(link, headers=HEADERS, timeout=CONF.u2.timeout)
+        return page.text
+
+    def _get_need_promote_torrents(self):
+        page = self._get_page(DOWNLOADING_LINK)
+        torrent_list = self._resolv_torrent_from_user_details(page)
+        for t in torrent_list:
+            if t.upload_ratio >= CONF.u2.upload_trigger and \
+                t.download_ratio <= CONF.u2.download_trigger:
+                continue
+            t.download_ratio = CONF.u2.download_ratio
+            t.upload_ratio = CONF.u2.upload_ratio
+            yield t
+
+    def _resolv_torrent_from_user_details(self, page):
+        torrent_list = []
+        html = etree.HTML(page)
+        trs = html.xpath('body/table/tr')[1:]
+        for tr in trs:
+            etr = etree.HTML(etree.tostring(tr))
+            href = etr.xpath('//table[contains(@class, \'torrentname\')]'
+                             '/tr/td/a/@href')[0]
+            res = RG_TORRENT_ID.search(href)
+            if res:
+                tid = int(res.group(1))
+            else:
+                LOG.warning('Can not resolv html: ' + etree.tostring(etr))
+                continue
+            promote = etr.xpath('//img[contains(@src, \'pic/trans\')]/@class')
+            if promote:
+                download_ratio = PROMOTE_DOWNLOAD_MAPPING.get(promote[0])
+                upload_ratio = PROMOTE_UPLOAD_MAPPING.get(promote[0])
+                if promote[0] == 'pro_custom':
+                    try:
+                        ur, dr = etr.xpath('//td[contains(@class, \'embedded\''
+                                          ')]/b/text()')[0:2]
+                        download_ratio = int(float(dr[:-1])*100)
+                        upload_ratio = int(float(ur[:-1])*100)
+                    except Exception as e:
+                        LOG.warning('resolv custom prmote failed, using'
+                                    'default, error: {}'.format(str(e)))
+            else:
+                download_ratio = 100
+                upload_ratio = 100
+            kwargs = {
+                'id': tid,
+                'download_ratio': download_ratio,
+                'upload_ratio': upload_ratio
+            }
+            torrent_list.append(torrent.Torrent(**kwargs))
+        return torrent_list
+
+    def _get_user_ucoin(self):
+        page = self._get_page(USER_DETAIL_LINK)
+        html = etree.HTML(page)
+        return float(html.xpath('//span[contains(@class, \'ucoin-notation\')]'
+                                '/@title')[1].replace(',', ''))
+
+    def _get_cost_ucoin(self, **kwargs):
+        page = requests.post(PROMOTE_TEST_LINK,
+                             headers=HEADERS,
+                             data=kwargs).text
+        html = etree.HTML(page)
+        return float(html.xpath('//span[contains(@class, \'ucoin-notation\')]'
+                                '/@title')[0][2:-2].replace(',', ''))
+
+    def _do_promote(self, t):
+        promote_page = self._get_page(PROMOTE_LINK.format(str(t.id)))
+        html = etree.HTML(promote_page)
+        input_values = html.xpath('//td[contains(@class, \'text\')]/'
+                                  'form[contains(@method, \'post\')]/'
+                                  'input[contains(@type, \'hidden\')]/@value')
+        input_names = html.xpath('//td[contains(@class, \'text\')]/'
+                                 'form[contains(@method, \'post\')]/'
+                                 'input[contains(@type, \'hidden\')]/@name')
+        kwargs = dict(zip(input_names, input_values))
+
+        # user: ALL为地图炮, SELF为恢复系, OTHER为治愈系
+        # start: 0表示立即生效
+        # hours: 魔法持续时间, 24-360 hours
+        # promotion: 2为免费, 3为2x, 4为2xFree, 5为50%off, 6为2x50%off,
+        #            7为30%off, 8为other(若选择此项,需要传递ur及dr参数,默认为1)
+        # comment: 魔法咒语什么的, 非必须
+        kwargs['user'] = 'SELF'
+        kwargs['user_other'] = ''
+        kwargs['start'] = 0
+        kwargs['hours'] = CONF.u2.promote_time
+        kwargs['promotion'] = 8
+        kwargs['ur'] = t.upload_ratio/100
+        kwargs['dr'] = t.download_ratio/100
+        kwargs['comment'] = ''
+
+        user_ucoin = self._get_user_ucoin()
+        cost_ucoin = self._get_cost_ucoin(**kwargs)
+        if user_ucoin - cost_ucoin >= 0:
+            msg = 'user ucoin: {}, torrent cost: {}, after promote: {}'.format(
+                str(user_ucoin), str(cost_ucoin), str(user_ucoin-cost_ucoin))
+            LOG.info(msg)
+            result = requests.post(PROMOTE_LINK.format(str(t.id)),
+                                   headers=HEADERS,
+                                   data=kwargs)
+            if result.status_code == 200:
+                LOG.info('torren: {} set promtoe success'.format(str(t.id)))
+            else:
+                LOG.warning('torren: {} set promtoe failed'.format(str(t.id)))
+        else:
+            LOG.warning('promote required ucoin: {}, but only have: {}'.format(
+                str(cost_ucoin), str(user_ucoin)))
+
+    def promote(self):
+        torrents = self._get_need_promote_torrents()
+        for t in torrents:
+            self._do_promote(t)
+
+
 class PeriodicTask(base.BasePeriodicTask):
 
     @periodic_task.periodic_task(spacing=CONF.periodic_task_interval)
     def upload(self, ctx):
-        clients = utils.get_enabled_clients()
-        for client in clients:
-            client(U2Site().get_torrent_links()).upload()
+        if CONF.u2.enable_auto_add:
+            clients = utils.get_enabled_clients()
+            for client in clients:
+                client(U2Site().get_torrent_links()).upload()
+        else:
+            LOG.info('u2: Auto add disabled, skip it')
+
+    @periodic_task.periodic_task(spacing=CONF.periodic_task_interval)
+    def promote(self, ctx):
+        if CONF.u2.enable_auto_promote:
+            U2Promote().promote()
+        else:
+            LOG.info('u2: Auto promote disabled, skip it')

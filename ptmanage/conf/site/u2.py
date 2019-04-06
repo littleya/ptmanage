@@ -27,6 +27,16 @@ u2_general_opts = [
         'timeout',
         default=15,
         help='''
+'''),
+    cfg.BoolOpt(
+        'enable_auto_add',
+        default=True,
+        help='''
+'''),
+    cfg.BoolOpt(
+        'enable_auto_promote',
+        default=True,
+        help='''
 ''')
 ]
 
@@ -73,9 +83,38 @@ u2_filter_opts = [
 ''')
 ]
 
+u2_promote_opts = [
+    cfg.IntOpt(
+        'upload_ratio',
+        default=233,
+        help='''
+'''),
+    cfg.IntOpt(
+        'download_ratio',
+        default=0,
+        help='''
+'''),
+    cfg.IntOpt(
+        'upload_trigger',
+        default=100,
+        help='''
+'''),
+    cfg.IntOpt(
+        'download_trigger',
+        default=30,
+        help='''
+'''),
+    cfg.IntOpt(
+        'promote_time',
+        default=24,
+        help='''
+''')
+]
+
 ALL_OPTS = list(itertools.chain(
     u2_general_opts,
-    u2_filter_opts
+    u2_filter_opts,
+    u2_promote_opts
 ))
 
 

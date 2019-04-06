@@ -19,7 +19,7 @@ requirements = [
 
 setup(
     name='ptmanage',
-    version='0.0.1',
+    version='0.0.2',
     author='ayasakinagi',
     author_email='ayasakinagi@littleya.com',
     description='automate manager pt torrent',
