@@ -239,7 +239,7 @@ class U2Promote(base.BasePromote):
         torrent_list = self._resolv_torrent_from_user_details(page)
         for t in torrent_list:
             if t.upload_ratio >= CONF.u2.upload_trigger and \
-                t.download_ratio <= CONF.u2.download_trigger:
+               t.download_ratio <= CONF.u2.download_trigger:
                 continue
             t.download_ratio = CONF.u2.download_ratio
             t.upload_ratio = CONF.u2.upload_ratio
@@ -266,7 +266,7 @@ class U2Promote(base.BasePromote):
                 if promote[0] == 'pro_custom':
                     try:
                         ur, dr = etr.xpath('//td[contains(@class, \'embedded\''
-                                          ')]/b/text()')[0:2]
+                                           ')]/b/text()')[0:2]
                         download_ratio = int(float(dr[:-1])*100)
                         upload_ratio = int(float(ur[:-1])*100)
                     except Exception as e:
