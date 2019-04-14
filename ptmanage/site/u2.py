@@ -42,8 +42,8 @@ RG_TORRENT_ID = re.compile('.*?(\\d+)', re.IGNORECASE | re.DOTALL)
 PROMOTE_DOWNLOAD_MAPPING = {
     'pro_30pctdown': 30,
     'pro_50pctdown': 50,
-    'pro_free': 100,
-    'pro_free2up': 100,
+    'pro_free': 0,
+    'pro_free2up': 0,
     'pro_custom': 0,
     'pro_2up': 100,
     'pro_50pctdown2up': 50
