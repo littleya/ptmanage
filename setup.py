@@ -14,12 +14,13 @@ requirements = [
     'oslo.log',
     'oslo.service',
     'paramiko',
+    'python-telegram-bot',
     'requests'
 ]
 
 setup(
     name='ptmanage',
-    version='0.0.2',
+    version='0.1.0',
     author='ayasakinagi',
     author_email='ayasakinagi@littleya.com',
     description='automate manager pt torrent',

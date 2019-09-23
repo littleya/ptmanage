@@ -25,7 +25,7 @@ HEADERS = {
               'image/webp,image/apng,*/*;q=0.8',
     'cache-control': 'max-age=0',
     'authority': 'u2.dmhy.org',
-    'cookie': CONF.u2.cookie
+    'cookie': 'nexusphp_u2=' + CONF.u2.cookie
 }
 DOWNLOADING_LINK = 'https://u2.dmhy.org/getusertorrentlistajax.php?' + \
                    'userid={}&type=leeching'.format(str(CONF.u2.uid))
@@ -58,6 +58,10 @@ PROMOTE_UPLOAD_MAPPING = {
     'pro_2up': 200,
     'pro_50pctdown2up': 200
 }
+
+
+NOTIFY_TORRENT_KEY = ['id', 'name', 'size', 'promote', 'promotetime', 'seeder',
+                      'leecher', 'uploadtime']
 
 
 class U2Site(base.BaseSite):
@@ -148,10 +152,19 @@ class U2Site(base.BaseSite):
         selected_torrents = U2Filter(self._get_torrent_webpage()).filter()
         passkey = CONF.u2.passkey
         torrent_links = {}
-        for tid in selected_torrents:
-            torrent_links[tid] = 'https://u2.dmhy.org/download.php?id=' + \
-                                 str(tid) + '&passkey=' + passkey + '&http=1'
-            LOG.debug('Add torrents: {}'.format(str(tid)))
+        msg = ''
+        for t in selected_torrents:
+            torrent_links[t.id] = 'https://u2.dmhy.org/download.php?id=' + \
+                                 str(t.id) + '&passkey=' + passkey + '&http=1'
+            LOG.debug('Add torrents: {}'.format(str(t.id)))
+
+            # Notification
+            for key in NOTIFY_TORRENT_KEY:
+                msg += '{}: {}\n'.format(key, getattr(t, key, None))
+            msg += '\n\n'
+        if msg:
+            msg = 'Add torrent from site: u2\n' + msg
+            utils.notify(msg)
         return torrent_links
 
 
@@ -222,7 +235,7 @@ class U2Filter(base.BaseFilter):
                self._filter_name(t) and \
                self._filter_type(t) and \
                self._filter_time(t):
-                torrents.append(t.id)
+                torrents.append(t)
         return torrents
 
 
@@ -236,7 +249,7 @@ class U2Promote(base.BasePromote):
 
     def _get_need_promote_torrents(self):
         page = self._get_page(DOWNLOADING_LINK)
-        torrent_list = self._resolv_torrent_from_user_details(page)
+        torrent_list = self._resolve_torrent_from_user_details(page)
         for t in torrent_list:
             if t.upload_ratio >= CONF.u2.upload_trigger and \
                t.download_ratio <= CONF.u2.download_trigger:
@@ -245,7 +258,7 @@ class U2Promote(base.BasePromote):
             t.upload_ratio = CONF.u2.upload_ratio
             yield t
 
-    def _resolv_torrent_from_user_details(self, page):
+    def _resolve_torrent_from_user_details(self, page):
         torrent_list = []
         html = etree.HTML(page)
         trs = html.xpath('body/table/tr')[1:]
@@ -257,7 +270,7 @@ class U2Promote(base.BasePromote):
             if res:
                 tid = int(res.group(1))
             else:
-                LOG.warning('Can not resolv html: ' + etree.tostring(etr))
+                LOG.warning('Can not resolve html: ' + etree.tostring(etr))
                 continue
             promote = etr.xpath('//img[contains(@src, \'pic/trans\')]/@class')
             if promote:
@@ -270,7 +283,7 @@ class U2Promote(base.BasePromote):
                         download_ratio = int(float(dr[:-1])*100)
                         upload_ratio = int(float(ur[:-1])*100)
                     except Exception as e:
-                        LOG.warning('resolv custom prmote failed, using'
+                        LOG.warning('resolve custom promote failed, using'
                                     'default, error: {}'.format(str(e)))
             else:
                 download_ratio = 100
@@ -339,6 +352,12 @@ class U2Promote(base.BasePromote):
         else:
             LOG.warning('promote required ucoin: {}, but only have: {}'.format(
                 str(cost_ucoin), str(user_ucoin)))
+
+        # Notification
+        msg = 'Promote torrent from site: u2'
+        msg += 'id: {}\nur: {}\ndr: {}\ncost: {}\ntotal: {}\n'.format(
+            str(t.id), kwargs['ur'], kwargs['dr'], cost_ucoin, user_ucoin)
+        utils.notify(msg)
 
     def promote(self):
         torrents = self._get_need_promote_torrents()

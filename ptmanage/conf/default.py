@@ -11,9 +11,24 @@ default_options = [
         default=[],
         help='''
 '''),
+    cfg.ListOpt(
+        'enabled_notify_clients',
+        default=[],
+        help='''
+'''),
     cfg.IntOpt(
         'periodic_task_interval',
         default=60,
+        help='''
+'''),
+    cfg.IntOpt(
+        'periodic_online_notify_interval',
+        default=60,
+        help='''
+'''),
+    cfg.StrOpt(
+        'online_notify_msg',
+        default='Pt Manage is online :)',
         help='''
 ''')
 ]
