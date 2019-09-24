@@ -18,19 +18,21 @@ class Client(base.BaseClient):
         global client
         if client is None:
             self._init_client()
-        elif client.sock.closed():
+        elif client.sock.closed:
             self._init_client()
-        client = self.client
+        else:
+            self.client = client
 
     def _init_client(self):
         ssh = paramiko.SSHClient()
-        ssh.load_host_keys()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(CONF.remtoe.host,
+        ssh.connect(CONF.remote.host,
                     port=CONF.remote.port,
                     username=CONF.remote.username,
                     password=CONF.remote.password)
         self.client = paramiko.SFTPClient.from_transport(ssh.get_transport())
+        global client
+        client = self.client
 
     def _get_torrent_file(self):
         self.torrent_contexts = {}
