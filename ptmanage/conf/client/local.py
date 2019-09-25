@@ -10,6 +10,7 @@ local_opts = [
     cfg.StrOpt(
         'path',
         help='''
+Local path to store torrent files.
 ''')
 ]
 

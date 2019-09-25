@@ -10,24 +10,28 @@ remote_opts = [
     cfg.StrOpt(
         'host',
         help='''
+Remote hostname, can be IP address or domain name or hostname.
 '''),
     cfg.IntOpt(
         'port',
         default=22,
         help='''
+Remote sshd port.
 '''),
     cfg.StrOpt(
         'username',
         help='''
+SSH username to loggin.
 '''),
     cfg.StrOpt(
         'password',
         help='''
-
+SSH password to loggin.
 '''),
     cfg.StrOpt(
         'path',
         help='''
+Remote path to store torrent files.
 ''')
 ]
 

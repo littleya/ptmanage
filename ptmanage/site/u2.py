@@ -183,23 +183,23 @@ class U2Filter(base.BaseFilter):
 
     def _filter_peer(self, t):
         if CONF.u2.seeder != 0:
-            if t.seeder >= CONF.u2.seeder:
+            if t.seeder > CONF.u2.seeder:
                 LOG.debug('filter seeder unpass: ' + str(t.id))
                 return False
         if CONF.u2.leecher != 0:
-            if t.leecher <= CONF.u2.leecher:
+            if t.leecher < CONF.u2.leecher:
                 LOG.debug('filter leecher unpass: ' + str(t.id))
                 return False
         if CONF.u2.leecher_seeder_ratio != 0:
             if t.seeder != 0 and \
-                    t.leecher/t.seeder <= CONF.u2.leecher_seeder_ratio:
+                    t.leecher/t.seeder < CONF.u2.leecher_seeder_ratio:
                 LOG.debug('filter dl/seed ratio unpass: ' + str(t.id))
                 return False
         return True
 
     def _filter_size(self, t):
         if CONF.u2.size != 0:
-            if t.size >= CONF.u2.size:
+            if t.size > CONF.u2.size:
                 LOG.debug('filter size unpass: ' + str(t.id))
                 return False
         return True

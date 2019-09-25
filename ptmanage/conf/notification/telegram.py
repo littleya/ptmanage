@@ -11,10 +11,12 @@ telegram_opts = [
     cfg.StrOpt(
         'token',
         help='''
+Telegram bot token.
 '''),
     cfg.StrOpt(
         'chat_id',
         help='''
+Telegram chat id. Can be channel or user.
 ''')
 ]
 
