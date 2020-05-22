@@ -221,7 +221,7 @@ class U2Filter(base.BaseFilter):
     def _filter_time(self, t):
         if CONF.u2.uploaded_time != 0:
             delta = time.time() - t.uploadtime
-            if delta > CONF.u2.uploaded_time * 60:
+            if delta > CONF.u2.uploaded_time:
                 LOG.debug('filter time unpass: ' + str(t.id))
                 return False
         return True
@@ -367,7 +367,8 @@ class U2Promote(base.BasePromote):
 
 class PeriodicTask(base.BasePeriodicTask):
 
-    @periodic_task.periodic_task(spacing=CONF.periodic_task_interval)
+    @periodic_task.periodic_task(
+        spacing=CONF.periodic_task_interval, run_immediately=True)
     def upload(self, ctx):
         if CONF.u2.enable_auto_add:
             clients = utils.get_enabled_clients()
@@ -376,7 +377,8 @@ class PeriodicTask(base.BasePeriodicTask):
         else:
             LOG.info('u2: Auto add disabled, skip it')
 
-    @periodic_task.periodic_task(spacing=CONF.periodic_task_interval)
+    @periodic_task.periodic_task(
+        spacing=CONF.periodic_task_interval, run_immediately=True)
     def promote(self, ctx):
         if CONF.u2.enable_auto_promote:
             U2Promote().promote()

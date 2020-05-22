@@ -5,6 +5,7 @@ from oslo_log import log as logging
 
 from ptmanage import __version__
 from ptmanage.conf import default
+from ptmanage.conf.client import deluge
 from ptmanage.conf.client import local
 from ptmanage.conf.client import remote
 from ptmanage.conf.notification import telegram
@@ -15,6 +16,7 @@ DOMAIN = 'ptmanage'
 
 default.register_opts(CONF)
 
+deluge.register_opts(CONF)
 local.register_opts(CONF)
 remote.register_opts(CONF)
 

@@ -142,7 +142,7 @@ This is a policy for auto add torrent.
         'uploaded_time',
         default=0,
         help='''
-Time during which the torrent was uploaded (in hours). The torrent which
+Time during which the torrent was uploaded (in seconds). The torrent which
 upload time larger than the configration will be ignored.
 This option can be ignored if the value is 0.
 

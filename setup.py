@@ -9,6 +9,7 @@ def read(fname):
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
 requirements = [
+    'deluge_client',
     'lxml',
     'oslo.config',
     'oslo.log',

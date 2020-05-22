@@ -37,6 +37,7 @@ class BasePeriodicTask(periodic_task.PeriodicTasks):
         super(BasePeriodicTask, self).__init__(conf)
         self.name = name
 
-    @periodic_task.periodic_task(spacing=CONF.periodic_online_notify_interval)
+    @periodic_task.periodic_task(
+        spacing=CONF.periodic_online_notify_interval, run_immediately=True)
     def notify_online(self, ctx):
         utils.notify(CONF.online_notify_msg)

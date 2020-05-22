@@ -9,7 +9,8 @@ LOG = logging.getLogger(__name__)
 
 CLIENT_MAPPING = {
     'local': 'ptmanage.client.local',
-    'remote': 'ptmanage.client.remote'
+    'remote': 'ptmanage.client.remote',
+    'deluge': 'ptmanage.client.deluge'
 }
 
 SITE_MAPPING = {
