@@ -7,6 +7,7 @@ from ptmanage import __version__
 from ptmanage.conf import default
 from ptmanage.conf.client import deluge
 from ptmanage.conf.client import local
+from ptmanage.conf.client import qbittorrent
 from ptmanage.conf.client import remote
 from ptmanage.conf.notification import telegram
 from ptmanage.conf.site import u2
@@ -18,6 +19,7 @@ default.register_opts(CONF)
 
 deluge.register_opts(CONF)
 local.register_opts(CONF)
+qbittorrent.register_opts(CONF)
 remote.register_opts(CONF)
 
 telegram.register_opts(CONF)

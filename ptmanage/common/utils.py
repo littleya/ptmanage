@@ -10,7 +10,8 @@ LOG = logging.getLogger(__name__)
 CLIENT_MAPPING = {
     'local': 'ptmanage.client.local',
     'remote': 'ptmanage.client.remote',
-    'deluge': 'ptmanage.client.deluge'
+    'deluge': 'ptmanage.client.deluge',
+    'qbittorrent': 'ptmanage.client.qbittorrent'
 }
 
 SITE_MAPPING = {
