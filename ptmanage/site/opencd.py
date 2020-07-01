@@ -26,7 +26,11 @@ HEADERS = {
     'cache-control': 'max-age=0',
     'cookie': CONF.opencd.cookie
 }
-TORRENT_LINK = 'https://open.cd/torrents.php'
+
+TORRENT_LINKS = [
+    'https://open.cd/torrents.php',
+    'https://open.cd/torrents.php?seeders=3'
+]
 
 RG_TORRENT_ID = re.compile('.*?(\\d+)', re.IGNORECASE | re.DOTALL)
 
@@ -63,8 +67,8 @@ class OpenCDSite(base.BaseSite):
         page = requests.get(link, headers=HEADERS, timeout=CONF.opencd.timeout)
         return page.text
 
-    def _get_torrent_webpage(self):
-        page = self._get_torrent_page(TORRENT_LINK)
+    def _get_torrent_webpage(self, link):
+        page = self._get_torrent_page(link)
         html = etree.HTML(page)
         tr = html.xpath('//table[contains(@class, \'torrents\')]/tr')[1:]
         info = []
@@ -139,7 +143,10 @@ class OpenCDSite(base.BaseSite):
         return info
 
     def get_torrent_links(self):
-        selected_torrents = OpenCDFilter(self._get_torrent_webpage()).filter()
+        selected_torrents = []
+        for link in TORRENT_LINKS:
+            selected_torrents.extend(
+                OpenCDFilter(self._get_torrent_webpage(link)).filter())
         passkey = CONF.opencd.passkey
         torrent_links = {}
         msg = ''
