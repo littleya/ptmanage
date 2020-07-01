@@ -175,8 +175,8 @@ class U2Filter(base.BaseFilter):
         self.unusing_torrents = unusing_torrents
 
     def _filter_promote(self, t):
-        torrent_promtoe = PROMOTE_DOWNLOAD_MAPPING.get(t.promote, 0)
-        if torrent_promtoe < CONF.u2.promote:
+        torrent_promtoe = PROMOTE_DOWNLOAD_MAPPING.get(t.promote, 100)
+        if torrent_promtoe > CONF.u2.promote:
             LOG.debug('filter promtoe unpass: ' + str(t.id))
             return False
         return True

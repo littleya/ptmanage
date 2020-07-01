@@ -11,11 +11,13 @@ CLIENT_MAPPING = {
     'local': 'ptmanage.client.local',
     'remote': 'ptmanage.client.remote',
     'deluge': 'ptmanage.client.deluge',
-    'qbittorrent': 'ptmanage.client.qbittorrent'
+    'qbittorrent': 'ptmanage.client.qbittorrent',
+    'transmission': 'ptmanage.client.transmission'
 }
 
 SITE_MAPPING = {
-    'u2': 'ptmanage.site.u2'
+    'u2': 'ptmanage.site.u2',
+    'opencd': 'ptmanage.site.opencd',
 }
 
 NOTIFY_MAPPING = {

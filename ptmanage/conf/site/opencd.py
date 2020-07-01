@@ -2,17 +2,17 @@ import itertools
 
 from oslo_config import cfg
 
-u2_group = cfg.OptGroup(
-    'u2',
-    title='U2 options',
+opencd_group = cfg.OptGroup(
+    'opencd',
+    title='opencd options',
     help='''
 ''')
 
-u2_general_opts = [
+opencd_general_opts = [
     cfg.IntOpt(
         'uid',
         help='''
-The user's id in U2.
+The user's id in opencd.
 '''),
     cfg.StrOpt(
         'passkey',
@@ -49,29 +49,17 @@ If enabled, it required all filter conditions can be passed:
 * types
 * size
 * uploaded_time
-'''),
-    cfg.BoolOpt(
-        'enable_auto_promote',
-        default=True,
-        help='''
-Enable auto promote, if enabled, will auto set torrent's promote which
-not fit user's promote policy.
-
-If enabled, it required all filter conditions can be passed:
-
-* upload_trigger
-* download_trigger
 ''')
 ]
 
-u2_filter_opts = [
+opencd_filter_opts = [
     cfg.IntOpt(
         'promote',
         default=0,
         help='''
 Download promote, 0 means 100% off, 100 means no promote.
 The fetched torrent can be passed if the torrent's download promote is
-less that/equal to the configuration.
+less than/equal to the configuration.
 
 This is a policy for auto add torrent.
 '''),
@@ -150,52 +138,17 @@ This is a policy for auto add torrent.
 ''')
 ]
 
-u2_promote_opts = [
-    cfg.IntOpt(
-        'upload_ratio',
-        default=233,
-        help='''
-Upload ratio to apply promote, minimum is 0, maximum is 233.
-'''),
-    cfg.IntOpt(
-        'download_ratio',
-        default=0,
-        help='''
-Download ratio ratio to apply promote, minimum is 0, maximum is 100.
-'''),
-    cfg.IntOpt(
-        'upload_trigger',
-        default=100,
-        help='''
-The trigger to apply promote, minimum is 0, maximum is 233. Need torrent's
-current upload ratio is less than the configration.
-'''),
-    cfg.IntOpt(
-        'download_trigger',
-        default=30,
-        help='''
-The trigger to apply promote, minimum is 0, maximum is 100. Need torrent's
-current download ratio is larger than the configration.
-'''),
-    cfg.IntOpt(
-        'promote_time',
-        default=24,
-        help='''
-The promote effect time in hours, minimum is 24.
-''')
-]
 
 ALL_OPTS = list(itertools.chain(
-    u2_general_opts,
-    u2_filter_opts,
-    u2_promote_opts
+    opencd_general_opts,
+    opencd_filter_opts,
 ))
 
 
 def register_opts(conf):
-    conf.register_group(u2_group),
-    conf.register_opts(ALL_OPTS, group=u2_group)
+    conf.register_group(opencd_group),
+    conf.register_opts(ALL_OPTS, group=opencd_group)
 
 
 def list_opts():
-    return {u2_group: ALL_OPTS}
+    return {opencd_group: ALL_OPTS}

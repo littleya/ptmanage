@@ -16,7 +16,8 @@ requirements = [
     'oslo.service',
     'paramiko',
     'python-telegram-bot',
-    'requests'
+    'requests',
+    'transmission-rpc'
 ]
 
 setup(
