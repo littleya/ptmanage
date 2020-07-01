@@ -34,5 +34,5 @@ class Client(base.BaseClient):
         for tid, link in self.links.items():
             self.client.add_torrent(
                 link, paused=False, download_dir=os.path.join(
-                    CONF.transmission.base_location, str(id)))
+                    CONF.transmission.base_location, str(tid)))
             LOG.info('add torrent: {}'.format(str(tid)))
