@@ -32,7 +32,11 @@ class Client(base.BaseClient):
 
     def upload(self):
         for tid, link in self.links.items():
-            self.client.add_torrent(
-                link, paused=False, download_dir=os.path.join(
-                    CONF.transmission.base_location, str(tid)))
-            LOG.info('add torrent: {}'.format(str(tid)))
+            try:
+                self.client.add_torrent(
+                    link, paused=False, download_dir=os.path.join(
+                        CONF.transmission.base_location, str(tid)))
+                LOG.info('add torrent: {}'.format(str(tid)))
+            except Exception as e:
+                LOG.error('Failed to add torrent, error: {}, link:{}'.format(
+                    e, link))
