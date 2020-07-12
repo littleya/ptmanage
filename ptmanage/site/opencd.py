@@ -152,7 +152,7 @@ class OpenCDSite(base.BaseSite):
         msg = ''
         for t in selected_torrents:
             torrent_links[t.id] = 'https://open.cd/download.php?id=' + \
-                                 str(t.id) + '&passkey=' + passkey
+                                  str(t.id) + '&passkey=' + passkey
             LOG.debug('Add torrents: {}'.format(str(t.id)))
 
             # Notification

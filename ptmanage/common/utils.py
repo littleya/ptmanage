@@ -59,4 +59,9 @@ def notify(msg):
         NOTIFY_CLIENT = get_enabled_notify_clients()
     for client in NOTIFY_CLIENT:
         LOG.info('notify online')
-        client().notify(msg)
+        try:
+            client().notify(msg)
+        except Exception as e:
+            LOG.error(
+                'Failed to send notification, error: {err}, msg: {msg}'.format(
+                    err=e, msg=msg))
