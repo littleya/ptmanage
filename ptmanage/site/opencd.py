@@ -82,7 +82,11 @@ class OpenCDSite(base.BaseSite):
                            '/a/@href')[0]
             trid = re.findall('\\d+', trid)[0]
             # get type
-            trtype = str(i.xpath('td[position()=1]/@title')[0])
+            trtype = ''
+            try:
+                trtype = str(i.xpath('td[position()=1]/@title')[0])
+            except Exception:
+                pass
             # get name
             trname = str(i.xpath('td[position()=3]/table/tr[position()=1]'
                                  '/td/a/@title')[0])
